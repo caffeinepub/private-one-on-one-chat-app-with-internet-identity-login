@@ -1,0 +1,78 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-06T19:56:55.962Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 4,
+    "implemented": 4,
+    "items": [
+      {
+        "id": "REQ-29",
+        "summary": "Remove the nested React Query `QueryClientProvider` (and its locally-created `QueryClient`) from `frontend/src/App.tsx` so the app uses the single `QueryClientProvider` already created in `frontend/src/main.tsx`, preventing duplicate caches and redundant query work after login.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-30",
+        "summary": "Stop triggering expensive “all users” fetching during the initial post-login chat-list load by removing unused `useListUsers()` calls from the thread list view so that the initial chat list only depends on `getUserThreads()` (and required access checks).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/chat/ThreadList.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/chat/ThreadList.tsx"
+        ]
+      },
+      {
+        "id": "REQ-31",
+        "summary": "Defer non-essential user-profile aggregation until it is actually needed by replacing broad user list lookups in the chat thread header with a narrower lookup (fetch only the other participant’s profile on-demand), so opening a thread does not require preloading all user profiles.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/chat/ChatThreadView.tsx",
+          "frontend/src/hooks/useUsers.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/chat/ChatThreadView.tsx",
+          "frontend/src/hooks/useUsers.ts"
+        ]
+      },
+      {
+        "id": "REQ-32",
+        "summary": "Adjust the authenticated “pre-chat-list” loading experience so it does not wait on non-critical queries before showing the main app shell; only block on Internet Identity initialization, then show a lightweight in-app loading state while access/profile/admin checks resolve.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/components/auth/AuthenticatedLoadingShell.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/components/auth/AuthenticatedLoadingShell.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/components/auth/AuthenticatedLoadingShell.tsx",
+    "frontend/src/components/chat/ChatThreadView.tsx",
+    "frontend/src/components/chat/ThreadList.tsx",
+    "frontend/src/hooks/useUsers.ts",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

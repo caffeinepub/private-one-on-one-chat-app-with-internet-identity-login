@@ -1,0 +1,113 @@
+{
+  "kind": "build_request",
+  "title": "Speed up post-login initial load by reducing redundant React Query work and deferring non-essential data fetching",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-29",
+      "text": "Remove the nested React Query `QueryClientProvider` (and its locally-created `QueryClient`) from `frontend/src/App.tsx` so the app uses the single `QueryClientProvider` already created in `frontend/src/main.tsx`, preventing duplicate caches and redundant query work after login.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6",
+          "msg-8"
+        ],
+        "quotes": [
+          "Make the app load faster after log in",
+          "1. before 2. frontend 3. yes",
+          "start build"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`frontend/src/App.tsx` no longer creates a new `QueryClient` instance.",
+        "`frontend/src/App.tsx` no longer wraps `AppContent` in a `QueryClientProvider`.",
+        "The app continues to function normally (login/logout, profile setup, pending-access gating, chat UI) using the `QueryClientProvider` from `frontend/src/main.tsx`."
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "text": "Stop triggering expensive “all users” fetching during the initial post-login chat-list load by removing unused `useListUsers()` calls from the thread list view so that the initial chat list only depends on `getUserThreads()` (and required access checks).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "Make the app load faster after log in",
+          "1. before 2. frontend 3. yes"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`frontend/src/components/chat/ThreadList.tsx` no longer calls `useListUsers()` when rendering the thread list.",
+        "After login (authorized user), the thread list can render its loading/empty/loaded states without initiating fetching of all user profiles.",
+        "There is no unused variable or lint/type error left behind from removing `useListUsers()` and related imports."
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "text": "Defer non-essential user-profile aggregation until it is actually needed by replacing broad user list lookups in the chat thread header with a narrower lookup (fetch only the other participant’s profile on-demand), so opening a thread does not require preloading all user profiles.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "Make the app load faster after log in",
+          "1. before 2. frontend 3. yes"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`frontend/src/components/chat/ChatThreadView.tsx` no longer relies on fetching the entire user list (`useListUsers`) just to compute the chat title for the other participant.",
+        "When a thread is opened, the UI fetches at most the other participant’s profile (or gracefully falls back to a generic title like \"Chat\"/principal-derived label if unavailable) without blocking message loading.",
+        "The thread view remains functional: messages load, block/unblock works, delete chat works, and the header title remains stable and readable."
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "text": "Adjust the authenticated “pre-chat-list” loading experience so it does not wait on non-critical queries before showing the main app shell; only block on Internet Identity initialization, then show a lightweight in-app loading state while access/profile/admin checks resolve.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "Make the app load faster after log in",
+          "1. before 2. frontend 3. yes"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After a successful login, the app does not show a full-screen spinner solely because profile/access/admin queries are still loading; instead it transitions quickly to an authenticated app shell with an in-context loading state.",
+        "Unauthorized users are still correctly gated: they cannot access chat features and will still be routed to profile setup or the pending-access screen once the required checks complete.",
+        "All user-facing loading text introduced/updated is in English."
+      ]
+    }
+  ],
+  "constraints": [
+    "Frontend changes must not modify any files under `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, or `frontend/src/main.tsx` (immutable paths).",
+    "Frontend-only optimization: do not change backend canister APIs or Motoko state/schema for this request.",
+    "Keep all user-facing strings in English."
+  ],
+  "nonGoals": [
+    "Implementing backend performance optimizations or new backend endpoints for faster thread/user lookups.",
+    "Changing polling intervals or real-time strategy (e.g., replacing polling with websockets).",
+    "Major UI redesign unrelated to post-login load performance."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

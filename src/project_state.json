@@ -1,0 +1,363 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 15,
+  "summary": "Secure private chat app using Internet Identity login. Scope includes one-on-one chats, plus a master-user (admin) authorization system where users can log in but cannot use chat features until approved by a specific master principal; the master user can grant permanent or time-limited free access and the app should be prepared for future paid access. Branding update: rename app to “PriveChat”, update main-page logo (generate), and redeploy to a fresh canister URL/address with the new branding applied everywhere.",
+  "architectural_notes": [
+    "Scope was simplified from friends list + group chats + admin roles to a minimal one-on-one chat where any user can chat with any other user.",
+    "New requirements: deleting a chat deletes the entire thread for both participants.",
+    "New requirements: blocking a user prevents sending new messages but does not remove/hide existing chats; unblocking restores access to the existing thread.",
+    "Master user is a specific, predesignated Internet Identity principal (not first-login).",
+    "Non-authorized users are allowed to authenticate/login but are blocked from using app/chat features until the master user grants permission.",
+    "Free access entitlements should be tracked in the backend per user with optional start/end timestamps to support time-limited access and future paid access.",
+    "Branding decision: app name will be “PriveChat” and should appear everywhere in the UI.",
+    "Deployment decision: perform a fresh redeploy to a new canister URL/address as part of the rebrand.",
+    "Post-login performance: optimize frontend initial load (before chat list renders) and lazy-load non-essential data after the main UI is visible."
+  ],
+  "known_issues": [
+    "Build/generation failed multiple times with 'couldn't implement your request' even after scope was simplified; may require further simplification or smaller incremental build steps.",
+    "After the latest redeploy/logo update, the app shows a noticeable post-login loading delay (~5 seconds) before the main app screen appears (no console errors reported)."
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-implement-internet-identity-authentication-in-the-frontend-so-users-can-sign-in-out-and-the-app-uses-the-authenticated-identity-for-all-chat-actions",
+      "title": "Implement Internet Identity authentication in the frontend so users can sign in/out and the app uses the authenticated identity for all chat actions.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-one-on-one-chat-threads-between-any-two-registered-users-including-creating-a-thread-or-reusing-an-existing-thread-for-the-same-pair-listing-a-user-s-threads-and-loading-messages-for-a-selected-thread",
+      "title": "Implement one-on-one chat threads between any two registered users, including creating a thread (or reusing an existing thread for the same pair), listing a user's threads, and loading messages for a selected thread.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-messaging-for-one-on-one-chats-send-messages-and-allow-users-to-edit-and-delete-only-their-own-messages",
+      "title": "Implement messaging for one-on-one chats: send messages, and allow users to edit and delete only their own messages.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-coherent-non-blue-non-purple-visual-theme-for-the-chat-ui-typography-colors-spacing-and-component-styling-and-apply-it-consistently-across-the-sign-in-screen-user-search-start-chat-flow-chat-list-and-chat-thread-views",
+      "title": "Create a coherent, non-blue/non-purple visual theme for the chat UI (typography, colors, spacing, and component styling) and apply it consistently across the sign-in screen, user search/start-chat flow, chat list, and chat thread views.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-ui-controls-to-delete-the-currently-open-chat-thread-with-a-confirmation-step-and-ensure-the-app-exits-the-deleted-thread-view-clears-selection-and-refreshes-the-thread-list-after-success",
+      "title": "Add frontend UI controls to delete the currently open chat thread, with a confirmation step, and ensure the app exits the deleted thread view (clears selection) and refreshes the thread list after success.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-ui-controls-to-block-unblock-the-other-participant-from-within-a-chat-thread-and-disable-sending-new-messages-while-blocked-showing-an-english-explanation",
+      "title": "Add frontend UI controls to block/unblock the other participant from within a chat thread, and disable sending new messages while blocked (showing an English explanation).",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-extend-react-query-hooks-to-call-the-new-backend-apis-for-deleting-threads-and-blocking-unblocking-users-and-invalidate-refetch-the-relevant-queries-threads-thread-details-messages-and-block-state-on-success",
+      "title": "Add/extend React Query hooks to call the new backend APIs for deleting threads and blocking/unblocking users, and invalidate/refetch the relevant queries (threads, thread details, messages, and block state) on success.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-master-user-ui-in-the-frontend-that-is-visible-only-to-the-master-principal-and-allows-viewing-registered-users-and-their-authorization-status-approving-granting-access-permanently-or-with-a-specified-time-window-and-revoking-access",
+      "title": "Add a master-user UI in the frontend that is visible only to the master Principal and allows: viewing registered users and their authorization status, approving (granting access) permanently or with a specified time window, and revoking access.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-app-flow-so-non-authorized-users-can-sign-in-and-complete-profile-setup-but-cannot-access-chat-features-show-a-clear-english-message-explaining-that-access-is-pending-and-that-they-must-wait-for-approval-by-the-master-user",
+      "title": "Update the frontend app flow so non-authorized users can sign in and complete profile setup, but cannot access chat features; show a clear English message explaining that access is pending and that they must wait for approval by the master user.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-rename-the-app-from-securechat-to-privechat-everywhere-in-the-frontend-ui-including-at-minimum-the-unauthenticated-login-screen-the-main-chat-header-the-pending-access-header-and-the-profile-setup-dialog-titles-descriptions-where-the-old-name-appears",
+      "title": "Rename the app from “SecureChat” to “PriveChat” everywhere in the frontend UI, including (at minimum) the unauthenticated login screen, the main chat header, the pending-access header, and the profile setup dialog titles/descriptions where the old name appears.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-browser-tab-document-metadata-to-reflect-the-privechat-branding-by-changing-the-html-document-title-and-any-other-relevant-visible-metadata-from-the-current-generic-title-to-privechat",
+      "title": "Update the browser tab/document metadata to reflect the PriveChat branding by changing the HTML document title (and any other relevant visible metadata) from the current generic title to “PriveChat”.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-a-new-privechat-logo-image-as-a-static-asset-and-add-it-to-the-frontend-under-frontend-public-assets-generated-then-render-it-as-the-main-logo-on-the-unauthenticated-landing-login-screen-and-in-the-main-app-header-chat-layout-header",
+      "title": "Generate a new PriveChat logo image as a static asset and add it to the frontend under `frontend/public/assets/generated/`, then render it as the main logo on the unauthenticated landing/login screen and in the main app header (chat layout header).",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-an-updated-privechat-logo-image-using-a-blue-white-red-color-scheme-at-a-larger-actual-image-resolution-than-the-current-logo-with-a-solid-white-background-not-transparent-save-it-as-a-static-asset-under-frontend-public-assets-generated-and-keep-the-file-naming-convention-consistent-with-the-existing-logo-asset",
+      "title": "Generate an updated PriveChat logo image using a blue/white/red color scheme, at a larger actual image resolution than the current logo, with a solid white background (not transparent). Save it as a static asset under `frontend/public/assets/generated/` and keep the file naming convention consistent with the existing logo asset.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-to-use-the-updated-privechat-logo-asset-everywhere-the-old-logo-is-currently-rendered-including-at-minimum-the-unauthenticated-login-screen-frontend-src-app-tsx-the-main-chat-header-frontend-src-components-chat-chatlayout-tsx-and-the-pending-access-header-frontend-src-components-access-pendingaccessscreen-tsx",
+      "title": "Update the frontend to use the updated PriveChat logo asset everywhere the old logo is currently rendered, including at minimum: the unauthenticated login screen (`frontend/src/App.tsx`), the main chat header (`frontend/src/components/chat/ChatLayout.tsx`), and the pending access header (`frontend/src/components/access/PendingAccessScreen.tsx`).",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-main-authenticated-chat-experience-responsive-for-mobile-screen-sizes-by-updating-the-layout-in-frontend-src-components-chat-chatlayout-tsx-so-it-works-well-on-narrow-viewports-e-g-phones-while-preserving-the-current-desktop-tablet-layout",
+      "title": "Make the main authenticated chat experience responsive for mobile screen sizes by updating the layout in `frontend/src/components/chat/ChatLayout.tsx` so it works well on narrow viewports (e.g., phones) while preserving the current desktop/tablet layout.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-mobile-friendly-navigation-flow-for-conversations-so-that-on-small-screens-users-can-switch-between-the-thread-list-and-the-active-chat-thread-comfortably-e-g-list-view-thread-view-with-a-clear-way-to-go-back-using-the-existing-selectedthreadid-state-in-frontend-src-components-chat-chatlayout-tsx",
+      "title": "Implement a mobile-friendly navigation flow for conversations so that on small screens users can switch between the thread list and the active chat thread comfortably (e.g., list view -> thread view with a clear way to go back), using the existing `selectedThreadId` state in `frontend/src/components/chat/ChatLayout.tsx`.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-touch-ergonomics-across-key-screens-login-pending-access-chat-thread-by-ensuring-tap-targets-spacing-and-typography-are-mobile-appropriate-updating-at-minimum-frontend-src-app-tsx-frontend-src-components-access-pendingaccessscreen-tsx-frontend-src-components-chat-chatthreadview-tsx-frontend-src-components-chat-threadlist-tsx-and-frontend-src-components-chat-messagecomposer-tsx",
+      "title": "Improve touch ergonomics across key screens (login, pending-access, chat thread) by ensuring tap targets, spacing, and typography are mobile-appropriate, updating at minimum: `frontend/src/App.tsx`, `frontend/src/components/access/PendingAccessScreen.tsx`, `frontend/src/components/chat/ChatThreadView.tsx`, `frontend/src/components/chat/ThreadList.tsx`, and `frontend/src/components/chat/MessageComposer.tsx`.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-viewport-height-usage-and-safe-area-handling-so-the-app-behaves-correctly-on-mobile-browsers-where-the-address-bar-changes-height-ensuring-the-main-screens-use-a-stable-mobile-viewport-height-and-avoid-content-being-hidden-behind-mobile-browser-ui-apply-where-relevant-in-frontend-src-components-chat-chatlayout-tsx-and-frontend-src-components-access-pendingaccessscreen-tsx-and-any-necessary-global-styles",
+      "title": "Update viewport height usage and safe-area handling so the app behaves correctly on mobile browsers where the address bar changes height, ensuring the main screens use a stable mobile viewport height and avoid content being hidden behind mobile browser UI (apply where relevant in `frontend/src/components/chat/ChatLayout.tsx` and `frontend/src/components/access/PendingAccessScreen.tsx`, and any necessary global styles).",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-nested-react-query-queryclientprovider-and-its-locally-created-queryclient-from-frontend-src-app-tsx-so-the-app-uses-the-single-queryclientprovider-already-created-in-frontend-src-main-tsx-preventing-duplicate-caches-and-redundant-query-work-after-login",
+      "title": "Remove the nested React Query `QueryClientProvider` (and its locally-created `QueryClient`) from `frontend/src/App.tsx` so the app uses the single `QueryClientProvider` already created in `frontend/src/main.tsx`, preventing duplicate caches and redundant query work after login.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-stop-triggering-expensive-all-users-fetching-during-the-initial-post-login-chat-list-load-by-removing-unused-uselistusers-calls-from-the-thread-list-view-so-that-the-initial-chat-list-only-depends-on-getuserthreads-and-required-access-checks",
+      "title": "Stop triggering expensive “all users” fetching during the initial post-login chat-list load by removing unused `useListUsers()` calls from the thread list view so that the initial chat list only depends on `getUserThreads()` (and required access checks).",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-defer-non-essential-user-profile-aggregation-until-it-is-actually-needed-by-replacing-broad-user-list-lookups-in-the-chat-thread-header-with-a-narrower-lookup-fetch-only-the-other-participant-s-profile-on-demand-so-opening-a-thread-does-not-require-preloading-all-user-profiles",
+      "title": "Defer non-essential user-profile aggregation until it is actually needed by replacing broad user list lookups in the chat thread header with a narrower lookup (fetch only the other participant’s profile on-demand), so opening a thread does not require preloading all user profiles.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-adjust-the-authenticated-pre-chat-list-loading-experience-so-it-does-not-wait-on-non-critical-queries-before-showing-the-main-app-shell-only-block-on-internet-identity-initialization-then-show-a-lightweight-in-app-loading-state-while-access-profile-admin-checks-resolve",
+      "title": "Adjust the authenticated “pre-chat-list” loading experience so it does not wait on non-critical queries before showing the main app shell; only block on Internet Identity initialization, then show a lightweight in-app loading state while access/profile/admin checks resolve.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Implement Internet Identity authentication for the chat app",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Support one-on-one chats between any registered users (no friends list required)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Ensure chat data is secure and private (access-controlled storage/transport)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add backend support for registering/recording users who have logged in at least once, and expose a query to list/search registered users by principal (and optionally a user-set display name) so a user can start a chat with anyone registered.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Enforce privacy and access control in the backend so that only chat participants can read thread metadata and messages, and only authenticated users can perform any chat operations.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Allow participants to delete a one-on-one chat thread (delete entire thread for both participants)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Add user blocking/unblocking: blocking prevents new messages; unblocking restores access to existing thread/history",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Add backend support to delete a one-on-one chat thread for both participants, removing the thread from storage and from each participant’s thread list.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Add backend support for blocking and unblocking a user, and enforce that blocking prevents any new messages between the two users (in either direction) while keeping existing thread history accessible.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Expose backend APIs needed by the UI to display and manage blocking state for the other participant in a 1:1 thread (e.g., query whether the current user has blocked the other participant, and optionally list blocked users).",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Add master-user (admin) authorization gating: users may log in with Internet Identity but cannot use chat features until approved by a designated master principal; provide a master UI to review and authorize users.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Add access entitlements: master user can grant free access permanently or for a specific time period (start/end timestamps) stored in the backend and enforced by the app.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Prepare the app for future payments/subscriptions (introduce extensible entitlement/paywall model and hooks for payment integration later).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Add backend support for a designated master user (admin) identified by a specific Internet Identity Principal, including a secure way to configure/set that master Principal for the canister.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Implement an authorization gating system in the backend where users may authenticate and register/login, but all chat capabilities remain blocked until the master user grants access.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Add backend APIs for the master user to review users requesting access and to grant/revoke access entitlements per user, supporting both permanent access and time-limited access (start/end timestamps) stored in canister state.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Prepare the backend entitlement model for future paid subscriptions without implementing payments now by making the entitlement representation extensible (e.g., distinct entitlement “source/type” fields that can later represent paid access).",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Rebrand app name to “PriveChat” across the entire UI (titles, screens, headers, master panel, etc.)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Generate and apply a new main-page logo for PriveChat",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Perform a fresh redeploy to a new canister URL/address with updated PriveChat branding",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Perform a fresh redeploy to a new canister URL/address for PriveChat, ensuring the deployed frontend is configured to talk to the newly deployed backend canister (and that the resulting app URL/address is new vs the previously deployed one).",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Optimize the PriveChat frontend UI/UX for mobile phone use (responsive layout, touch-friendly controls, mobile-safe spacing/typography)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Improve post-login frontend load performance (before chat list appears) by deferring non-essential data fetching until after the main UI is visible",
+      "reqIds": [],
+      "status": "in_progress"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "PriveChat",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

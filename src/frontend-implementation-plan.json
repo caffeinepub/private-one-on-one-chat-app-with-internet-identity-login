@@ -1,0 +1,81 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Reduce redundant React Query work and defer non-essential fetching to speed up post-login initial load",
+  "requirements": [
+    {
+      "id": "REQ-29",
+      "summary": "Remove the nested QueryClientProvider from App so the app uses the single QueryClientProvider created in main.tsx.",
+      "acceptanceCriteria": [
+        "`frontend/src/App.tsx` no longer creates a new `QueryClient` instance.",
+        "`frontend/src/App.tsx` no longer wraps `AppContent` in a `QueryClientProvider`.",
+        "The app continues to function normally (login/logout, profile setup, pending-access gating, chat UI) using the `QueryClientProvider` from `frontend/src/main.tsx`."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Remove local QueryClient creation and the nested QueryClientProvider wrapper so App relies on the QueryClientProvider already configured in frontend/src/main.tsx. Keep Toaster mounted within App so existing notifications still work."
+        }
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "summary": "Stop triggering expensive all-users fetching on initial chat-list load by removing unused useListUsers() from the thread list view.",
+      "acceptanceCriteria": [
+        "`frontend/src/components/chat/ThreadList.tsx` no longer calls `useListUsers()` when rendering the thread list.",
+        "After login (authorized user), the thread list can render its loading/empty/loaded states without initiating fetching of all user profiles.",
+        "There is no unused variable or lint/type error left behind from removing `useListUsers()` and related imports."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/chat/ThreadList.tsx",
+          "operation": "modify",
+          "description": "Remove the useListUsers() call and any related loading gating from the thread list so initial rendering depends only on useGetUserThreads() (and existing access checks in the hook). Clean up now-unused imports/variables (e.g., useCurrentPrincipal, users, usersLoading) to avoid lint/type errors."
+        }
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "summary": "Defer user-profile aggregation by fetching only the other participant’s profile on-demand for the chat header title instead of preloading all users.",
+      "acceptanceCriteria": [
+        "`frontend/src/components/chat/ChatThreadView.tsx` no longer relies on fetching the entire user list (`useListUsers`) just to compute the chat title for the other participant.",
+        "When a thread is opened, the UI fetches at most the other participant’s profile (or gracefully falls back to a generic title like \"Chat\"/principal-derived label if unavailable) without blocking message loading.",
+        "The thread view remains functional: messages load, block/unblock works, delete chat works, and the header title remains stable and readable."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/chat/ChatThreadView.tsx",
+          "operation": "modify",
+          "description": "Remove useListUsers-based title computation. Derive the other participant principal from the thread participants list, then use a narrower on-demand lookup via useGetUserProfile (or equivalent) to fetch only that participant’s profile. Ensure message loading behavior is unchanged and the header renders a stable English fallback (e.g., displayName if present, else a shortened principal label, else \"Chat\") without blocking messages."
+        },
+        {
+          "path": "frontend/src/hooks/useUsers.ts",
+          "operation": "modify",
+          "description": "If needed to support on-demand participant lookup ergonomically, refine/extend the existing per-user profile hook to accept the principal in the format used by ChatThreadView (keeping query keys stable and avoiding triggering the broad all-users query). Ensure changes do not introduce new all-users fetching during thread view render."
+        }
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "summary": "Adjust post-login loading so only Internet Identity initialization blocks; show an authenticated shell quickly while access/profile/admin checks resolve.",
+      "acceptanceCriteria": [
+        "After a successful login, the app does not show a full-screen spinner solely because profile/access/admin queries are still loading; instead it transitions quickly to an authenticated app shell with an in-context loading state.",
+        "Unauthorized users are still correctly gated: they cannot access chat features and will still be routed to profile setup or the pending-access screen once the required checks complete.",
+        "All user-facing loading text introduced/updated is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Change the authenticated pre-chat-list loading logic: keep a full-screen blocking loader only for Internet Identity initialization (isInitializing). When authenticated but profile/access/admin queries are still resolving, render a lightweight authenticated in-app shell/loading view instead of a full-screen spinner. Once checks complete, continue routing to ProfileSetupDialog, PendingAccessScreen, or ChatLayout as before. Ensure any new/updated user-facing loading strings are in English."
+        },
+        {
+          "path": "frontend/src/components/auth/AuthenticatedLoadingShell.tsx",
+          "operation": "create",
+          "description": "Create a lightweight authenticated in-app loading component (app-shell-style) used immediately after login while profile/access/admin checks resolve. Keep it minimal and English-only (e.g., \"Loading your account...\"), and avoid rendering chat features until gating checks complete."
+        }
+      ]
+    }
+  ]
+}

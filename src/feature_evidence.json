@@ -1,0 +1,83 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-remove-the-nested-react-query-queryclientprovider-and-its-locally-created-queryclient-from-frontend-src-app-tsx-so-the-app-uses-the-single-queryclientprovider-already-created-in-frontend-src-main-tsx-preventing-duplicate-caches-and-redundant-query-work-after-login",
+      "featureTitle": "Remove the nested React Query `QueryClientProvider` (and its locally-created `QueryClient`) from `frontend/src/App.tsx` so the app uses the single `QueryClientProvider` already created in `frontend/src/main.tsx`, preventing duplicate caches and redundant query work after login.",
+      "files": [
+        "frontend/src/App.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-29"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-stop-triggering-expensive-all-users-fetching-during-the-initial-post-login-chat-list-load-by-removing-unused-uselistusers-calls-from-the-thread-list-view-so-that-the-initial-chat-list-only-depends-on-getuserthreads-and-required-access-checks",
+      "featureTitle": "Stop triggering expensive “all users” fetching during the initial post-login chat-list load by removing unused `useListUsers()` calls from the thread list view so that the initial chat list only depends on `getUserThreads()` (and required access checks).",
+      "files": [
+        "frontend/src/components/chat/ThreadList.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-30"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-defer-non-essential-user-profile-aggregation-until-it-is-actually-needed-by-replacing-broad-user-list-lookups-in-the-chat-thread-header-with-a-narrower-lookup-fetch-only-the-other-participant-s-profile-on-demand-so-opening-a-thread-does-not-require-preloading-all-user-profiles",
+      "featureTitle": "Defer non-essential user-profile aggregation until it is actually needed by replacing broad user list lookups in the chat thread header with a narrower lookup (fetch only the other participant’s profile on-demand), so opening a thread does not require preloading all user profiles.",
+      "files": [
+        "frontend/src/components/chat/ChatThreadView.tsx",
+        "frontend/src/hooks/useUsers.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-31"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-adjust-the-authenticated-pre-chat-list-loading-experience-so-it-does-not-wait-on-non-critical-queries-before-showing-the-main-app-shell-only-block-on-internet-identity-initialization-then-show-a-lightweight-in-app-loading-state-while-access-profile-admin-checks-resolve",
+      "featureTitle": "Adjust the authenticated “pre-chat-list” loading experience so it does not wait on non-critical queries before showing the main app shell; only block on Internet Identity initialization, then show a lightweight in-app loading state while access/profile/admin checks resolve.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/auth/AuthenticatedLoadingShell.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-32"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
