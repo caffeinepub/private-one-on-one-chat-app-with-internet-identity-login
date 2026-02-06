@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Speed up the initial post-login load by eliminating redundant React Query caches/work and deferring non-essential user/profile fetching until it’s actually needed.
+**Goal:** Add an in-app Settings view accessible from the authenticated chat header to display user principals with per-user copy-to-clipboard actions.
 
 **Planned changes:**
-- Remove the nested `QueryClientProvider` and locally-created `QueryClient` from `frontend/src/App.tsx` so the app uses only the existing provider from `frontend/src/main.tsx`.
-- Stop triggering “all users” fetching during initial thread list rendering by removing unused `useListUsers()` usage from `frontend/src/components/chat/ThreadList.tsx`.
-- Update `frontend/src/components/chat/ChatThreadView.tsx` to avoid relying on the entire user list for the header title; fetch only the other participant’s profile on-demand (or use a generic fallback title) without blocking message loading.
-- Adjust the authenticated pre-chat-list loading flow so the app shell shows after Internet Identity initialization, with lightweight in-app loading while profile/access/admin checks resolve (still enforcing gating once checks complete).
+- Add a Settings entry point in `frontend/src/components/chat/ChatLayout.tsx` that opens a Settings dialog/panel without navigating away from chat and without breaking existing mobile navigation behavior.
+- Implement a Settings view that shows the current user’s full Internet Identity principal with a copy button and clear English success/failure feedback.
+- In the Settings view, show a user list with display name (when available) and full principal plus a copy button per user; populate via `useGetAllUsers()` for admins and `useGetChatUsers()` for non-admins, ensuring the current user is not duplicated in the non-admin list.
 
-**User-visible outcome:** After logging in, the app transitions to the authenticated shell faster and reaches the chat list/thread view without unnecessary “fetch all users” work, while still correctly routing users through profile setup or pending-access gating when required.
+**User-visible outcome:** Signed-in users can open Settings from the chat header to view and copy their own principal, and view/copy other users’ principals (admin: all users; non-admin: discovered chat users) with clear English feedback.

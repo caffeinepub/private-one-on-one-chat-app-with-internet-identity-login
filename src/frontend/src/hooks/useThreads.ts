@@ -55,14 +55,18 @@ export function useCreateThread() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<ThreadId, Error, string[]>({
     mutationFn: async (participants: string[]) => {
       if (!actor) throw new Error('Actor not available');
       const principals = participants.map((p) => Principal.fromText(p));
-      return actor.createThread(principals);
+      const threadId = await actor.createThread(principals);
+      return threadId;
     },
-    onSuccess: () => {
+    onSuccess: (threadId) => {
+      // Invalidate thread list to show the new/reused thread
       queryClient.invalidateQueries({ queryKey: ['userThreads'] });
+      // Prefetch the thread data so it's ready when selected
+      queryClient.invalidateQueries({ queryKey: ['thread', threadId.toString()] });
     },
   });
 }

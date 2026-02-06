@@ -1,44 +1,16 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T19:56:55.959Z",
-  "summary": "Implemented React Query load-reduction changes in ThreadList and ChatThreadView, removed nested QueryClientProvider usage in App, and introduced a new authenticated loading component. However, the new post-login loading flow still blocks on profile/access/admin queries via a full-screen loading shell rather than showing the authenticated app shell with in-context loading as requested.",
-  "missing_requirements": [
-    {
-      "id": "REQ-32",
-      "requirement": "After login, do not block on non-critical queries (profile/access/admin) before showing the main authenticated app shell; only block on Internet Identity initialization, then show an in-context loading state while checks resolve.",
-      "reason": "`frontend/src/App.tsx` still returns a full-screen loading UI (`<AuthenticatedLoadingShell />`) whenever `profileLoading || accessLoading || isAdminLoading` is true, which continues to block rendering the main authenticated app shell until those queries finish.",
-      "evidence": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/auth/AuthenticatedLoadingShell.tsx"
-      ]
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "New full-screen authenticated loading screen with PriveChat branding/logo and the text \"Loading your account...\"",
-      "reason": "REQ-32 asked for an authenticated app shell with an in-context loading state, not a new full-screen branded loading page. The branding/logo additions are not requested by REQ-29–REQ-32.",
-      "evidence": [
-        "frontend/src/components/auth/AuthenticatedLoadingShell.tsx",
-        "frontend/src/App.tsx"
-      ]
-    },
-    {
-      "description": "Login screen layout/branding updated to include PriveChat logo, headings, and additional copy",
-      "reason": "The BuildRequest focuses on reducing redundant React Query work and deferring non-essential fetching; it does not request login screen redesign/branding changes.",
-      "evidence": [
-        "frontend/src/App.tsx"
-      ]
-    }
-  ],
-  "confidence": 0.73,
+  "generatedAt": "2026-02-06T21:01:41.688Z",
+  "summary": "Diff adds a Settings entry point in the authenticated chat header and introduces a Settings dialog that shows the current user’s full principal with copy-to-clipboard + toast feedback. It also selects the user list based on admin status (useGetAllUsers vs useGetChatUsers) and filters out the current user from the displayed list. Due to truncation of SettingsDialog.tsx, the per-user row rendering (full principal + per-row copy button) cannot be fully verified from the provided diff summary.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.72,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/auth/AuthenticatedLoadingShell.tsx",
-    "frontend/src/components/chat/ChatThreadView.tsx",
-    "frontend/src/components/chat/ThreadList.tsx",
-    "frontend/src/hooks/useUsers.ts",
+    "frontend/src/components/chat/ChatLayout.tsx",
+    "frontend/src/components/settings/SettingsDialog.tsx",
+    "frontend/src/utils/clipboard.ts",
     "project_state.json"
   ]
 }

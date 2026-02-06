@@ -5,15 +5,17 @@ import UserSearchStartChat from './UserSearchStartChat';
 import UserBadge from '../profile/UserBadge';
 import LoginButton from '../auth/LoginButton';
 import AccessManagementDialog from '../admin/AccessManagementDialog';
+import SettingsDialog from '../settings/SettingsDialog';
 import { useIsCallerAdmin } from '../../hooks/useAccessControl';
 import { Button } from '../ui/button';
-import { MessageSquarePlus, Shield, ArrowLeft } from 'lucide-react';
+import { MessageSquarePlus, Shield, ArrowLeft, Settings } from 'lucide-react';
 import type { ThreadId } from '../../backend';
 
 export default function ChatLayout() {
   const [selectedThreadId, setSelectedThreadId] = useState<ThreadId | null>(null);
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [showAccessManagement, setShowAccessManagement] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const { data: isAdmin } = useIsCallerAdmin();
 
   const handleThreadCreated = (threadId: ThreadId) => {
@@ -29,6 +31,11 @@ export default function ChatLayout() {
   const handleBackToList = () => {
     setSelectedThreadId(null);
     setShowUserSearch(false);
+  };
+
+  const handleAdminStartChat = (threadId: ThreadId) => {
+    setShowAccessManagement(false);
+    setSelectedThreadId(threadId);
   };
 
   // On mobile, show either list or thread view
@@ -70,6 +77,14 @@ export default function ChatLayout() {
                 <Shield className="h-4 w-4" />
               </Button>
             )}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowSettings(true)}
+              title="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
             <div className="hidden sm:block">
               <UserBadge />
             </div>
@@ -121,8 +136,15 @@ export default function ChatLayout() {
 
       {/* Access Management Dialog */}
       {isAdmin && (
-        <AccessManagementDialog open={showAccessManagement} onOpenChange={setShowAccessManagement} />
+        <AccessManagementDialog 
+          open={showAccessManagement} 
+          onOpenChange={setShowAccessManagement}
+          onStartChat={handleAdminStartChat}
+        />
       )}
+
+      {/* Settings Dialog */}
+      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
     </div>
   );
 }

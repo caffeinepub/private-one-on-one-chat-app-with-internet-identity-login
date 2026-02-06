@@ -7,6 +7,7 @@ import {
   getEntitlementStatus,
 } from '../../hooks/useAccessControl';
 import { useGetAllUsers } from '../../hooks/useUsers';
+import { useCreateThread } from '../../hooks/useThreads';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,7 @@ import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
-import { Loader2, CheckCircle2, XCircle, Clock, Ban, UserPlus } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Clock, Ban, UserPlus, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { EntitlementType, EntitlementSource, AccessRequestStatus } from '../../backend';
 import { ScrollArea } from '../ui/scroll-area';
@@ -34,23 +35,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
+import type { ThreadId } from '../../backend';
 
 interface AccessManagementDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStartChat?: (threadId: ThreadId) => void;
 }
 
-export default function AccessManagementDialog({ open, onOpenChange }: AccessManagementDialogProps) {
+export default function AccessManagementDialog({ open, onOpenChange, onStartChat }: AccessManagementDialogProps) {
   const { data: entitlements, isLoading: entitlementsLoading } = useGetAllAccessEntitlements();
   const { data: users, isLoading: usersLoading } = useGetAllUsers();
   const grantAccessMutation = useGrantAccess();
   const revokeAccessMutation = useRevokeAccess();
   const approveRequestMutation = useApproveAccessRequest();
+  const createThreadMutation = useCreateThread();
 
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [grantType, setGrantType] = useState<'permanent' | 'temporary'>('permanent');
   const [durationDays, setDurationDays] = useState<string>('30');
   const [showRevokeConfirm, setShowRevokeConfirm] = useState<string | null>(null);
+  const [startingChatForUser, setStartingChatForUser] = useState<string | null>(null);
 
   const isLoading = entitlementsLoading || usersLoading;
 
@@ -96,6 +101,37 @@ export default function AccessManagementDialog({ open, onOpenChange }: AccessMan
       toast.success(approve ? 'Access request approved' : 'Access request rejected');
     } catch (error: any) {
       toast.error(error?.message || 'Failed to process request');
+    }
+  };
+
+  const handleStartChat = async (userPrincipal: string) => {
+    // Check if user has approved access
+    const userEntitlement = entitlements?.find((e) => e.user.toString() === userPrincipal);
+    if (!userEntitlement || userEntitlement.status !== AccessRequestStatus.approved) {
+      toast.error('Cannot start chat: User does not have approved access');
+      return;
+    }
+
+    // Check if access is expired
+    if (userEntitlement.endTime && Number(userEntitlement.endTime) < Date.now() * 1_000_000) {
+      toast.error('Cannot start chat: User access has expired');
+      return;
+    }
+
+    setStartingChatForUser(userPrincipal);
+
+    try {
+      const threadId = await createThreadMutation.mutateAsync([userPrincipal]);
+      toast.success('Chat started successfully');
+      if (onStartChat) {
+        onStartChat(threadId);
+      }
+    } catch (error: any) {
+      console.error('Failed to start chat:', error);
+      const errorMessage = error?.message || 'Failed to start chat. Please try again.';
+      toast.error(errorMessage);
+    } finally {
+      setStartingChatForUser(null);
     }
   };
 
@@ -308,25 +344,47 @@ export default function AccessManagementDialog({ open, onOpenChange }: AccessMan
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {usersWithEntitlements?.map((user) => (
-                        <TableRow key={user.principal}>
-                          <TableCell className="font-medium">{user.displayName}</TableCell>
-                          <TableCell>{getStatusBadge(user.entitlement)}</TableCell>
-                          <TableCell className="text-right">
-                            {user.entitlement?.status === AccessRequestStatus.approved && (
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => setShowRevokeConfirm(user.principal)}
-                                disabled={revokeAccessMutation.isPending}
-                              >
-                                <Ban className="mr-1 h-3 w-3" />
-                                Revoke
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {usersWithEntitlements?.map((user) => {
+                        const isStartingChat = startingChatForUser === user.principal;
+                        const isApproved = user.entitlement?.status === AccessRequestStatus.approved;
+                        
+                        return (
+                          <TableRow key={user.principal}>
+                            <TableCell className="font-medium">{user.displayName}</TableCell>
+                            <TableCell>{getStatusBadge(user.entitlement)}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                {isApproved && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleStartChat(user.principal)}
+                                    disabled={isStartingChat || createThreadMutation.isPending}
+                                  >
+                                    {isStartingChat ? (
+                                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <MessageSquare className="mr-1 h-3 w-3" />
+                                    )}
+                                    Start Chat
+                                  </Button>
+                                )}
+                                {isApproved && (
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => setShowRevokeConfirm(user.principal)}
+                                    disabled={revokeAccessMutation.isPending}
+                                  >
+                                    <Ban className="mr-1 h-3 w-3" />
+                                    Revoke
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </ScrollArea>

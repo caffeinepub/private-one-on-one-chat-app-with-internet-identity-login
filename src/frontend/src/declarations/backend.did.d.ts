@@ -35,6 +35,10 @@ export interface ChatThreadView {
   'participants' : Array<UserId>,
   'messages' : Array<ChatMessage>,
 }
+export interface ChatUser {
+  'principal' : UserId,
+  'displayName' : [] | [string],
+}
 export type EntitlementSource = { 'promotion' : null } |
   { 'adminGrant' : null } |
   { 'payment' : null };
@@ -66,6 +70,7 @@ export interface _SERVICE {
   'getBlockedUsers' : ActorMethod<[], Array<UserId>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getChatUsers' : ActorMethod<[], Array<ChatUser>>,
   'getCurrentUserAccessEntitlement' : ActorMethod<[], [] | [AccessEntitlement]>,
   'getMessages' : ActorMethod<[ThreadId], Array<ChatMessage>>,
   'getThread' : ActorMethod<[ThreadId], ChatThreadView>,

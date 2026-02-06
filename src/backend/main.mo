@@ -77,6 +77,11 @@ actor {
     displayName : ?Text;
   };
 
+  public type ChatUser = {
+    principal : UserId;
+    displayName : ?Text;
+  };
+
   // State Variables
   var nextThreadId : ThreadId = 1;
   var nextMessageId : MessageId = 1;
@@ -133,14 +138,28 @@ actor {
     users.get(caller);
   };
 
+  // Updated: Allow authorized users to view other authorized users' profiles
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
     };
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile unless you are an admin");
+    
+    // Allow viewing own profile
+    if (caller == user) {
+      return users.get(user);
     };
-    users.get(user);
+    
+    // Allow admins to view any profile
+    if (AccessControl.isAdmin(accessControlState, caller)) {
+      return users.get(user);
+    };
+    
+    // Allow authorized users to view other authorized users' profiles
+    if (hasValidAccess(caller) and hasValidAccess(user)) {
+      return users.get(user);
+    };
+    
+    Runtime.trap("Unauthorized: Can only view profiles of users with valid chat access");
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
@@ -638,6 +657,30 @@ actor {
       Runtime.trap("Unauthorized: Can only view your own access entitlement unless you are an admin");
     };
     accessEntitlements.get(user);
+  };
+
+  //----------------------------------------------------------
+  // Chat User Discovery for Authorized Users
+  //----------------------------------------------------------
+
+  public query ({ caller }) func getChatUsers() : async [ChatUser] {
+    requireChatAccess(caller);
+    let authorizedUsers = List.empty<ChatUser>();
+    for ((principal, profile) in users.entries()) {
+      switch (accessEntitlements.get(principal)) {
+        case (?entitlement) {
+          if (entitlement.status == #approved) {
+            let chatUser : ChatUser = {
+              principal;
+              displayName = profile.displayName;
+            };
+            authorizedUsers.add(chatUser);
+          };
+        };
+        case (null) {};
+      };
+    };
+    authorizedUsers.toArray();
   };
 
   private func timestamp() : Int {

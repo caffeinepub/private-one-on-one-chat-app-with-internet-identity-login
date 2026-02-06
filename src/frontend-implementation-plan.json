@@ -1,79 +1,66 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Reduce redundant React Query work and defer non-essential fetching to speed up post-login initial load",
+  "title": "Settings dialog for viewing and copying user principals",
   "requirements": [
     {
-      "id": "REQ-29",
-      "summary": "Remove the nested QueryClientProvider from App so the app uses the single QueryClientProvider created in main.tsx.",
+      "id": "REQ-38",
+      "summary": "Add a Settings entry point in the authenticated chat header that opens a non-navigating Settings dialog/panel.",
       "acceptanceCriteria": [
-        "`frontend/src/App.tsx` no longer creates a new `QueryClient` instance.",
-        "`frontend/src/App.tsx` no longer wraps `AppContent` in a `QueryClientProvider`.",
-        "The app continues to function normally (login/logout, profile setup, pending-access gating, chat UI) using the `QueryClientProvider` from `frontend/src/main.tsx`."
+        "When signed in and viewing the main chat layout, a user can open a Settings view from the header.",
+        "Opening/closing the Settings view does not break the existing mobile thread-list/thread-view navigation behavior.",
+        "All user-facing labels in the Settings UI are in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/chat/ChatLayout.tsx",
           "operation": "modify",
-          "description": "Remove local QueryClient creation and the nested QueryClientProvider wrapper so App relies on the QueryClientProvider already configured in frontend/src/main.tsx. Keep Toaster mounted within App so existing notifications still work."
-        }
-      ]
-    },
-    {
-      "id": "REQ-30",
-      "summary": "Stop triggering expensive all-users fetching on initial chat-list load by removing unused useListUsers() from the thread list view.",
-      "acceptanceCriteria": [
-        "`frontend/src/components/chat/ThreadList.tsx` no longer calls `useListUsers()` when rendering the thread list.",
-        "After login (authorized user), the thread list can render its loading/empty/loaded states without initiating fetching of all user profiles.",
-        "There is no unused variable or lint/type error left behind from removing `useListUsers()` and related imports."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/chat/ThreadList.tsx",
-          "operation": "modify",
-          "description": "Remove the useListUsers() call and any related loading gating from the thread list so initial rendering depends only on useGetUserThreads() (and existing access checks in the hook). Clean up now-unused imports/variables (e.g., useCurrentPrincipal, users, usersLoading) to avoid lint/type errors."
-        }
-      ]
-    },
-    {
-      "id": "REQ-31",
-      "summary": "Defer user-profile aggregation by fetching only the other participant’s profile on-demand for the chat header title instead of preloading all users.",
-      "acceptanceCriteria": [
-        "`frontend/src/components/chat/ChatThreadView.tsx` no longer relies on fetching the entire user list (`useListUsers`) just to compute the chat title for the other participant.",
-        "When a thread is opened, the UI fetches at most the other participant’s profile (or gracefully falls back to a generic title like \"Chat\"/principal-derived label if unavailable) without blocking message loading.",
-        "The thread view remains functional: messages load, block/unblock works, delete chat works, and the header title remains stable and readable."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/chat/ChatThreadView.tsx",
-          "operation": "modify",
-          "description": "Remove useListUsers-based title computation. Derive the other participant principal from the thread participants list, then use a narrower on-demand lookup via useGetUserProfile (or equivalent) to fetch only that participant’s profile. Ensure message loading behavior is unchanged and the header renders a stable English fallback (e.g., displayName if present, else a shortened principal label, else \"Chat\") without blocking messages."
+          "description": "Add a Settings button in the header and wire it to open/close a Settings view rendered as an in-place dialog/panel so it does not navigate away from chat; ensure it does not interfere with existing mobile list/thread conditional rendering. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/hooks/useUsers.ts",
-          "operation": "modify",
-          "description": "If needed to support on-demand participant lookup ergonomically, refine/extend the existing per-user profile hook to accept the principal in the format used by ChatThreadView (keeping query keys stable and avoiding triggering the broad all-users query). Ensure changes do not introduce new all-users fetching during thread view render."
-        }
-      ]
-    },
-    {
-      "id": "REQ-32",
-      "summary": "Adjust post-login loading so only Internet Identity initialization blocks; show an authenticated shell quickly while access/profile/admin checks resolve.",
-      "acceptanceCriteria": [
-        "After a successful login, the app does not show a full-screen spinner solely because profile/access/admin queries are still loading; instead it transitions quickly to an authenticated app shell with an in-context loading state.",
-        "Unauthorized users are still correctly gated: they cannot access chat features and will still be routed to profile setup or the pending-access screen once the required checks complete.",
-        "All user-facing loading text introduced/updated is in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Change the authenticated pre-chat-list loading logic: keep a full-screen blocking loader only for Internet Identity initialization (isInitializing). When authenticated but profile/access/admin queries are still resolving, render a lightweight authenticated in-app shell/loading view instead of a full-screen spinner. Once checks complete, continue routing to ProfileSetupDialog, PendingAccessScreen, or ChatLayout as before. Ensure any new/updated user-facing loading strings are in English."
-        },
-        {
-          "path": "frontend/src/components/auth/AuthenticatedLoadingShell.tsx",
+          "path": "frontend/src/components/settings/SettingsDialog.tsx",
           "operation": "create",
-          "description": "Create a lightweight authenticated in-app loading component (app-shell-style) used immediately after login while profile/access/admin checks resolve. Keep it minimal and English-only (e.g., \"Loading your account...\"), and avoid rendering chat features until gating checks complete."
+          "description": "Implement a Settings dialog/panel component composed from existing shadcn/ui components (do not edit any files under frontend/src/components/ui) that can be controlled via open/onOpenChange props and renders English labels. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "summary": "Show the current user’s full Internet Identity principal in Settings with copy-to-clipboard and clear success/failure feedback.",
+      "acceptanceCriteria": [
+        "The Settings view shows the current user’s full principal (not truncated).",
+        "Clicking the copy button copies the principal to the clipboard.",
+        "On success, the app shows an English confirmation (e.g., toast) indicating the principal was copied.",
+        "If clipboard copy fails, the app shows an English error message."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/settings/SettingsDialog.tsx",
+          "operation": "modify",
+          "description": "Display the signed-in user's full principal string (not truncated) using existing identity/current-principal access (without modifying immutable hooks) and add a copy button that triggers clipboard copy with English success/error feedback (use existing toast system). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/utils/clipboard.ts",
+          "operation": "create",
+          "description": "Add a small utility to perform clipboard copy with robust error handling (e.g., navigator.clipboard when available, with clear thrown errors) so Settings can show consistent success/failure messaging. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "summary": "List users in Settings with display name (when available), full principal, and per-user copy buttons, using admin vs non-admin user discovery rules.",
+      "acceptanceCriteria": [
+        "If the signed-in user is an admin, populate the list using the existing admin user listing hook (useGetAllUsers() from frontend/src/hooks/useUsers.ts).",
+        "If the signed-in user is not an admin, populate the list using the existing authorized-user discovery hook (useGetChatUsers() from frontend/src/hooks/useUsers.ts).",
+        "Each row shows a full principal (not truncated) and a copy button.",
+        "Clicking a row’s copy button copies the correct principal to the clipboard and shows English success/failure feedback.",
+        "The current user is not duplicated in the non-admin list (do not list the caller as a target user)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/settings/SettingsDialog.tsx",
+          "operation": "modify",
+          "description": "Add a users list section: if admin, use useGetAllUsers(); otherwise, use useGetChatUsers(); render each row with display name (when available) and full principal (not truncated) plus a copy button per row that uses the clipboard utility and shows English success/error feedback. For non-admin, filter out the current user principal to avoid listing the caller. Verify the component's usage instructions before implementing."
         }
       ]
     }

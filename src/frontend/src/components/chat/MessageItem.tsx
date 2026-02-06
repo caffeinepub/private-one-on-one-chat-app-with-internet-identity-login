@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useEditMessage, useDeleteMessage } from '../../hooks/useMessages';
 import { useCurrentPrincipal } from '../../hooks/useCurrentUserProfile';
-import { useListUsers } from '../../hooks/useUsers';
+import { useGetUserProfile } from '../../hooks/useUsers';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Pencil, Trash2, Check, X, User } from 'lucide-react';
 import type { ChatMessage, ThreadId } from '../../backend';
-import { useMemo } from 'react';
 
 interface MessageItemProps {
   message: ChatMessage;
@@ -20,15 +19,13 @@ export default function MessageItem({ message, threadId }: MessageItemProps) {
   const currentPrincipal = useCurrentPrincipal();
   const editMessage = useEditMessage();
   const deleteMessage = useDeleteMessage();
-  const { data: users = [] } = useListUsers();
+  
+  // Fetch only the sender's profile on-demand
+  const { data: senderProfile } = useGetUserProfile(message.sender.toString());
 
   const isOwnMessage = currentPrincipal === message.sender.toString();
 
-  const sender = useMemo(() => {
-    return users.find((u) => u.principal.toString() === message.sender.toString());
-  }, [users, message.sender]);
-
-  const senderName = sender?.displayName || 'Anonymous';
+  const senderName = senderProfile?.displayName || 'Anonymous';
   const initials = senderName
     .split(' ')
     .map((n) => n[0])

@@ -10,17 +10,21 @@ export type Option<T> = Some<T> | None;
 export type ThreadId = bigint;
 export type UserId = Principal;
 export type MessageId = bigint;
+export interface ChatUser {
+    principal: UserId;
+    displayName?: string;
+}
+export interface ChatThreadView {
+    id: ThreadId;
+    participants: Array<UserId>;
+    messages: Array<ChatMessage>;
+}
 export interface ChatMessage {
     id: MessageId;
     deleted: boolean;
     content: string;
     sender: UserId;
     timestamp: bigint;
-}
-export interface ChatThreadView {
-    id: ThreadId;
-    participants: Array<UserId>;
-    messages: Array<ChatMessage>;
 }
 export interface AccessEntitlement {
     startTime: bigint;
@@ -70,6 +74,7 @@ export interface backendInterface {
     getBlockedUsers(): Promise<Array<UserId>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getChatUsers(): Promise<Array<ChatUser>>;
     getCurrentUserAccessEntitlement(): Promise<AccessEntitlement | null>;
     getMessages(threadId: ThreadId): Promise<Array<ChatMessage>>;
     getThread(threadId: ThreadId): Promise<ChatThreadView>;

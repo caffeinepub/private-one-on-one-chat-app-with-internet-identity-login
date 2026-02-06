@@ -92,17 +92,21 @@ export class ExternalBlob {
 export type ThreadId = bigint;
 export type UserId = Principal;
 export type MessageId = bigint;
+export interface ChatUser {
+    principal: UserId;
+    displayName?: string;
+}
+export interface ChatThreadView {
+    id: ThreadId;
+    participants: Array<UserId>;
+    messages: Array<ChatMessage>;
+}
 export interface ChatMessage {
     id: MessageId;
     deleted: boolean;
     content: string;
     sender: UserId;
     timestamp: bigint;
-}
-export interface ChatThreadView {
-    id: ThreadId;
-    participants: Array<UserId>;
-    messages: Array<ChatMessage>;
 }
 export interface AccessEntitlement {
     startTime: bigint;
@@ -153,6 +157,7 @@ export interface backendInterface {
     getBlockedUsers(): Promise<Array<UserId>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getChatUsers(): Promise<Array<ChatUser>>;
     getCurrentUserAccessEntitlement(): Promise<AccessEntitlement | null>;
     getMessages(threadId: ThreadId): Promise<Array<ChatMessage>>;
     getThread(threadId: ThreadId): Promise<ChatThreadView>;
@@ -171,7 +176,7 @@ export interface backendInterface {
     unblockUser(userToUnblock: UserId): Promise<void>;
     userExists(): Promise<boolean>;
 }
-import type { AccessEntitlement as _AccessEntitlement, AccessRequestStatus as _AccessRequestStatus, EntitlementSource as _EntitlementSource, EntitlementType as _EntitlementType, UserId as _UserId, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { AccessEntitlement as _AccessEntitlement, AccessRequestStatus as _AccessRequestStatus, ChatUser as _ChatUser, EntitlementSource as _EntitlementSource, EntitlementType as _EntitlementType, UserId as _UserId, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -356,6 +361,20 @@ export class Backend implements backendInterface {
             return from_candid_UserRole_n18(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getChatUsers(): Promise<Array<ChatUser>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getChatUsers();
+                return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getChatUsers();
+            return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getCurrentUserAccessEntitlement(): Promise<AccessEntitlement | null> {
         if (this.processError) {
             try {
@@ -429,14 +448,14 @@ export class Backend implements backendInterface {
     async grantAccess(arg0: UserId, arg1: EntitlementType, arg2: EntitlementSource, arg3: bigint | null): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.grantAccess(arg0, to_candid_EntitlementType_n20(this._uploadFile, this._downloadFile, arg1), to_candid_EntitlementSource_n22(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n24(this._uploadFile, this._downloadFile, arg3));
+                const result = await this.actor.grantAccess(arg0, to_candid_EntitlementType_n22(this._uploadFile, this._downloadFile, arg1), to_candid_EntitlementSource_n24(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n26(this._uploadFile, this._downloadFile, arg3));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.grantAccess(arg0, to_candid_EntitlementType_n20(this._uploadFile, this._downloadFile, arg1), to_candid_EntitlementSource_n22(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n24(this._uploadFile, this._downloadFile, arg3));
+            const result = await this.actor.grantAccess(arg0, to_candid_EntitlementType_n22(this._uploadFile, this._downloadFile, arg1), to_candid_EntitlementSource_n24(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n26(this._uploadFile, this._downloadFile, arg3));
             return result;
         }
     }
@@ -485,14 +504,14 @@ export class Backend implements backendInterface {
     async registerUser(arg0: string | null): Promise<UserProfile> {
         if (this.processError) {
             try {
-                const result = await this.actor.registerUser(to_candid_opt_n25(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.registerUser(to_candid_opt_n27(this._uploadFile, this._downloadFile, arg0));
                 return from_candid_UserProfile_n15(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.registerUser(to_candid_opt_n25(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.registerUser(to_candid_opt_n27(this._uploadFile, this._downloadFile, arg0));
             return from_candid_UserProfile_n15(this._uploadFile, this._downloadFile, result);
         }
     }
@@ -527,14 +546,14 @@ export class Backend implements backendInterface {
     async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n26(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n28(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n26(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n28(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -600,6 +619,9 @@ function from_candid_AccessEntitlement_n4(_uploadFile: (file: ExternalBlob) => P
 }
 function from_candid_AccessRequestStatus_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AccessRequestStatus): AccessRequestStatus {
     return from_candid_variant_n7(_uploadFile, _downloadFile, value);
+}
+function from_candid_ChatUser_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ChatUser): ChatUser {
+    return from_candid_record_n16(_uploadFile, _downloadFile, value);
 }
 function from_candid_EntitlementSource_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _EntitlementSource): EntitlementSource {
     return from_candid_variant_n10(_uploadFile, _downloadFile, value);
@@ -707,25 +729,28 @@ function from_candid_variant_n7(_uploadFile: (file: ExternalBlob) => Promise<Uin
 function from_candid_vec_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_AccessEntitlement>): Array<AccessEntitlement> {
     return value.map((x)=>from_candid_AccessEntitlement_n4(_uploadFile, _downloadFile, x));
 }
-function to_candid_EntitlementSource_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: EntitlementSource): _EntitlementSource {
+function from_candid_vec_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ChatUser>): Array<ChatUser> {
+    return value.map((x)=>from_candid_ChatUser_n21(_uploadFile, _downloadFile, x));
+}
+function to_candid_EntitlementSource_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: EntitlementSource): _EntitlementSource {
+    return to_candid_variant_n25(_uploadFile, _downloadFile, value);
+}
+function to_candid_EntitlementType_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: EntitlementType): _EntitlementType {
     return to_candid_variant_n23(_uploadFile, _downloadFile, value);
 }
-function to_candid_EntitlementType_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: EntitlementType): _EntitlementType {
-    return to_candid_variant_n21(_uploadFile, _downloadFile, value);
-}
-function to_candid_UserProfile_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): _UserProfile {
-    return to_candid_record_n27(_uploadFile, _downloadFile, value);
+function to_candid_UserProfile_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): _UserProfile {
+    return to_candid_record_n29(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
 }
-function to_candid_opt_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: bigint | null): [] | [bigint] {
+function to_candid_opt_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: bigint | null): [] | [bigint] {
     return value === null ? candid_none() : candid_some(value);
 }
-function to_candid_opt_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
+function to_candid_opt_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
     return value === null ? candid_none() : candid_some(value);
 }
-function to_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     principal: UserId;
     displayName?: string;
 }): {
@@ -752,7 +777,7 @@ function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         guest: null
     } : value;
 }
-function to_candid_variant_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: EntitlementType): {
+function to_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: EntitlementType): {
     trial: null;
 } | {
     permanent: null;
@@ -771,7 +796,7 @@ function to_candid_variant_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint
         sponsored: null
     } : value;
 }
-function to_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: EntitlementSource): {
+function to_candid_variant_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: EntitlementSource): {
     promotion: null;
 } | {
     adminGrant: null;

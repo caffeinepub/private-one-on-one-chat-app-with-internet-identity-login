@@ -46,6 +46,10 @@ export const UserProfile = IDL.Record({
   'principal' : UserId,
   'displayName' : IDL.Opt(IDL.Text),
 });
+export const ChatUser = IDL.Record({
+  'principal' : UserId,
+  'displayName' : IDL.Opt(IDL.Text),
+});
 export const ChatMessage = IDL.Record({
   'id' : MessageId,
   'deleted' : IDL.Bool,
@@ -81,6 +85,7 @@ export const idlService = IDL.Service({
   'getBlockedUsers' : IDL.Func([], [IDL.Vec(UserId)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getChatUsers' : IDL.Func([], [IDL.Vec(ChatUser)], ['query']),
   'getCurrentUserAccessEntitlement' : IDL.Func(
       [],
       [IDL.Opt(AccessEntitlement)],
@@ -153,6 +158,10 @@ export const idlFactory = ({ IDL }) => {
     'principal' : UserId,
     'displayName' : IDL.Opt(IDL.Text),
   });
+  const ChatUser = IDL.Record({
+    'principal' : UserId,
+    'displayName' : IDL.Opt(IDL.Text),
+  });
   const ChatMessage = IDL.Record({
     'id' : MessageId,
     'deleted' : IDL.Bool,
@@ -188,6 +197,7 @@ export const idlFactory = ({ IDL }) => {
     'getBlockedUsers' : IDL.Func([], [IDL.Vec(UserId)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getChatUsers' : IDL.Func([], [IDL.Vec(ChatUser)], ['query']),
     'getCurrentUserAccessEntitlement' : IDL.Func(
         [],
         [IDL.Opt(AccessEntitlement)],

@@ -1,61 +1,50 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T19:56:55.962Z",
+  "generatedAt": "2026-02-06T21:01:41.692Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-29",
-        "summary": "Remove the nested React Query `QueryClientProvider` (and its locally-created `QueryClient`) from `frontend/src/App.tsx` so the app uses the single `QueryClientProvider` already created in `frontend/src/main.tsx`, preventing duplicate caches and redundant query work after login.",
+        "id": "REQ-38",
+        "summary": "Add a Settings UI entry point in the authenticated app header (within `frontend/src/components/chat/ChatLayout.tsx`) that opens a Settings view (dialog or panel) without navigating away from the chat experience.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/components/chat/ChatLayout.tsx",
+          "frontend/src/components/settings/SettingsDialog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/components/chat/ChatLayout.tsx",
+          "frontend/src/components/settings/SettingsDialog.tsx"
         ]
       },
       {
-        "id": "REQ-30",
-        "summary": "Stop triggering expensive “all users” fetching during the initial post-login chat-list load by removing unused `useListUsers()` calls from the thread list view so that the initial chat list only depends on `getUserThreads()` (and required access checks).",
+        "id": "REQ-39",
+        "summary": "In the Settings view, display the current user’s full Internet Identity principal and provide a copy-to-clipboard button that copies the full principal string and shows clear success/failure feedback.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/chat/ThreadList.tsx"
+          "frontend/src/components/settings/SettingsDialog.tsx",
+          "frontend/src/utils/clipboard.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/chat/ThreadList.tsx"
+          "frontend/src/components/settings/SettingsDialog.tsx",
+          "frontend/src/utils/clipboard.ts"
         ]
       },
       {
-        "id": "REQ-31",
-        "summary": "Defer non-essential user-profile aggregation until it is actually needed by replacing broad user list lookups in the chat thread header with a narrower lookup (fetch only the other participant’s profile on-demand), so opening a thread does not require preloading all user profiles.",
+        "id": "REQ-40",
+        "summary": "In the Settings view, show a list of users with each user’s display name (when available) and full principal, and provide a copy button per user that copies that user’s principal to the clipboard.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/chat/ChatThreadView.tsx",
-          "frontend/src/hooks/useUsers.ts"
+          "frontend/src/components/settings/SettingsDialog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/chat/ChatThreadView.tsx",
-          "frontend/src/hooks/useUsers.ts"
-        ]
-      },
-      {
-        "id": "REQ-32",
-        "summary": "Adjust the authenticated “pre-chat-list” loading experience so it does not wait on non-critical queries before showing the main app shell; only block on Internet Identity initialization, then show a lightweight in-app loading state while access/profile/admin checks resolve.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/auth/AuthenticatedLoadingShell.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/auth/AuthenticatedLoadingShell.tsx"
+          "frontend/src/components/settings/SettingsDialog.tsx"
         ]
       }
     ]
@@ -65,11 +54,9 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/components/auth/AuthenticatedLoadingShell.tsx",
-    "frontend/src/components/chat/ChatThreadView.tsx",
-    "frontend/src/components/chat/ThreadList.tsx",
-    "frontend/src/hooks/useUsers.ts",
+    "frontend/src/components/chat/ChatLayout.tsx",
+    "frontend/src/components/settings/SettingsDialog.tsx",
+    "frontend/src/utils/clipboard.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

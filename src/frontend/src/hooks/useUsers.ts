@@ -1,19 +1,63 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
-import { useGetAllAccessEntitlements } from './useAccessControl';
-import type { UserProfile } from '../backend';
+import type { UserProfile, ChatUser } from '../backend';
 import { Principal } from '@dfinity/principal';
 
-// Get all users from entitlements (since backend doesn't have getAllUsers)
-export function useListUsers() {
-  const { data: entitlements = [] } = useGetAllAccessEntitlements();
-  const { actor } = useActor();
+// Get chat users (authorized users only) - works for all authenticated users with chat access
+export function useGetChatUsers() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<ChatUser[]>({
+    queryKey: ['chatUsers'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getChatUsers();
+    },
+    enabled: !!actor && !actorFetching && !!identity,
+    retry: 1,
+  });
+}
+
+// Search chat users by display name or principal
+export function useSearchChatUsers(searchTerm: string) {
+  const { data: chatUsers = [], isLoading, error } = useGetChatUsers();
+  const { identity } = useInternetIdentity();
+
+  const currentPrincipal = identity?.getPrincipal().toString();
+
+  const filteredUsers = searchTerm.trim()
+    ? chatUsers.filter((user) => {
+        const term = searchTerm.toLowerCase();
+        const displayName = user.displayName?.toLowerCase() || '';
+        const principal = user.principal.toString().toLowerCase();
+        return (
+          (displayName.includes(term) || principal.includes(term)) &&
+          user.principal.toString() !== currentPrincipal
+        );
+      })
+    : chatUsers.filter((user) => user.principal.toString() !== currentPrincipal);
+
+  return {
+    data: filteredUsers,
+    isLoading,
+    error,
+  };
+}
+
+// Admin-only: Get all users from entitlements
+export function useGetAllUsers() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   return useQuery<UserProfile[]>({
-    queryKey: ['allUsers', entitlements.map(e => e.user.toString()).join(',')],
+    queryKey: ['allUsersFromEntitlements'],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error('Actor not available');
+      
+      // Get all entitlements (admin-only)
+      const entitlements = await actor.getAllAccessEntitlements();
       
       // Fetch user profiles for all users in entitlements
       const userProfiles = await Promise.all(
@@ -29,30 +73,9 @@ export function useListUsers() {
       
       return userProfiles.filter((p): p is UserProfile => p !== null);
     },
-    enabled: !!actor && entitlements.length > 0,
+    enabled: !!actor && !actorFetching && !!identity,
+    retry: 1,
   });
-}
-
-export function useGetAllUsers() {
-  return useListUsers();
-}
-
-export function useSearchUsers(searchTerm: string) {
-  const { data: allUsers = [], isLoading } = useListUsers();
-
-  const filteredUsers = searchTerm.trim()
-    ? allUsers.filter((user) => {
-        const term = searchTerm.toLowerCase();
-        const displayName = user.displayName?.toLowerCase() || '';
-        const principal = user.principal.toString().toLowerCase();
-        return displayName.includes(term) || principal.includes(term);
-      })
-    : allUsers;
-
-  return {
-    data: filteredUsers,
-    isLoading,
-  };
 }
 
 export function useGetUserProfile(principalString: string | null) {

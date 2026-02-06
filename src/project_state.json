@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 15,
+  "projectStateVersion": 19,
   "summary": "Secure private chat app using Internet Identity login. Scope includes one-on-one chats, plus a master-user (admin) authorization system where users can log in but cannot use chat features until approved by a specific master principal; the master user can grant permanent or time-limited free access and the app should be prepared for future paid access. Branding update: rename app to “PriveChat”, update main-page logo (generate), and redeploy to a fresh canister URL/address with the new branding applied everywhere.",
   "architectural_notes": [
     "Scope was simplified from friends list + group chats + admin roles to a minimal one-on-one chat where any user can chat with any other user.",
@@ -15,7 +15,9 @@
   ],
   "known_issues": [
     "Build/generation failed multiple times with 'couldn't implement your request' even after scope was simplified; may require further simplification or smaller incremental build steps.",
-    "After the latest redeploy/logo update, the app shows a noticeable post-login loading delay (~5 seconds) before the main app screen appears (no console errors reported)."
+    "After the latest redeploy/logo update, the app shows a noticeable post-login loading delay (~5 seconds) before the main app screen appears (no console errors reported).",
+    "Regression after Version 7: cannot start a new chat (clicking a user does nothing, no navigation to chat layout, and no network request is fired); newly registered users appear in the power-user/master panel but are not usable for starting chats.",
+    "Master (admin) account cannot load the user list and sees “no permission” after redeploy; likely the master/admin principal was not configured/restored in the canister AccessControl state."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -194,6 +196,54 @@
         "REQ-32"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-user-listing-search-flow-used-by-new-chat-so-it-no-longer-depends-on-admin-only-entitlements-aggregation-and-instead-uses-the-new-backend-user-discovery-api-to-show-newly-approved-users-to-regular-authorized-users",
+      "title": "Update the frontend user listing/search flow used by “New Chat” so it no longer depends on admin-only entitlements aggregation, and instead uses the new backend user-discovery API to show newly approved users to regular authorized users.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-start-chat-reliably-create-select-a-thread-and-navigate-to-the-chat-thread-view-add-explicit-user-facing-error-feedback-if-thread-creation-fails-instead-of-failing-silently",
+      "title": "Make “Start chat” reliably create/select a thread and navigate to the chat thread view; add explicit user-facing error feedback if thread creation fails (instead of failing silently).",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-admin-master-user-access-management-dialog-add-a-clear-action-to-start-a-chat-with-a-selected-approved-user-and-ensure-it-opens-selects-the-created-thread-in-the-main-chat-layout",
+      "title": "In the admin (master user) Access Management dialog, add a clear action to start a chat with a selected approved user and ensure it opens/selects the created thread in the main chat layout.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-settings-ui-entry-point-in-the-authenticated-app-header-within-frontend-src-components-chat-chatlayout-tsx-that-opens-a-settings-view-dialog-or-panel-without-navigating-away-from-the-chat-experience",
+      "title": "Add a Settings UI entry point in the authenticated app header (within `frontend/src/components/chat/ChatLayout.tsx`) that opens a Settings view (dialog or panel) without navigating away from the chat experience.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-settings-view-display-the-current-user-s-full-internet-identity-principal-and-provide-a-copy-to-clipboard-button-that-copies-the-full-principal-string-and-shows-clear-success-failure-feedback",
+      "title": "In the Settings view, display the current user’s full Internet Identity principal and provide a copy-to-clipboard button that copies the full principal string and shows clear success/failure feedback.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-settings-view-show-a-list-of-users-with-each-user-s-display-name-when-available-and-full-principal-and-provide-a-copy-button-per-user-that-copies-that-user-s-principal-to-the-clipboard",
+      "title": "In the Settings view, show a list of users with each user’s display name (when available) and full principal, and provide a copy button per user that copies that user’s principal to the clipboard.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -354,6 +404,28 @@
       "summary": "Improve post-login frontend load performance (before chat list appears) by deferring non-essential data fetching until after the main UI is visible",
       "reqIds": [],
       "status": "in_progress"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Fix the backend privacy/authorization model so an authorized (has chat access) non-admin user can discover and start chats with other authorized users, without requiring admin-only APIs.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Adjust backend profile access so a non-admin user with valid chat access can fetch another authorized user’s profile (principal + displayName) when needed for chat UI (e.g., thread header and search results), without granting access to unauthorized users’ profiles.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Show each user’s Internet Identity principal on the settings page with a copy-to-clipboard button",
+      "reqIds": [],
+      "status": "pending"
     }
   ],
   "gameProjectType": "none",

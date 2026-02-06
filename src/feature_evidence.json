@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-nested-react-query-queryclientprovider-and-its-locally-created-queryclient-from-frontend-src-app-tsx-so-the-app-uses-the-single-queryclientprovider-already-created-in-frontend-src-main-tsx-preventing-duplicate-caches-and-redundant-query-work-after-login",
-      "featureTitle": "Remove the nested React Query `QueryClientProvider` (and its locally-created `QueryClient`) from `frontend/src/App.tsx` so the app uses the single `QueryClientProvider` already created in `frontend/src/main.tsx`, preventing duplicate caches and redundant query work after login.",
+      "featureId": "feature-add-a-settings-ui-entry-point-in-the-authenticated-app-header-within-frontend-src-components-chat-chatlayout-tsx-that-opens-a-settings-view-dialog-or-panel-without-navigating-away-from-the-chat-experience",
+      "featureTitle": "Add a Settings UI entry point in the authenticated app header (within `frontend/src/components/chat/ChatLayout.tsx`) that opens a Settings view (dialog or panel) without navigating away from the chat experience.",
       "files": [
-        "frontend/src/App.tsx"
+        "frontend/src/components/chat/ChatLayout.tsx",
+        "frontend/src/components/settings/SettingsDialog.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -16,15 +17,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-29"
+        "REQ-38"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-stop-triggering-expensive-all-users-fetching-during-the-initial-post-login-chat-list-load-by-removing-unused-uselistusers-calls-from-the-thread-list-view-so-that-the-initial-chat-list-only-depends-on-getuserthreads-and-required-access-checks",
-      "featureTitle": "Stop triggering expensive “all users” fetching during the initial post-login chat-list load by removing unused `useListUsers()` calls from the thread list view so that the initial chat list only depends on `getUserThreads()` (and required access checks).",
+      "featureId": "feature-in-the-settings-view-display-the-current-user-s-full-internet-identity-principal-and-provide-a-copy-to-clipboard-button-that-copies-the-full-principal-string-and-shows-clear-success-failure-feedback",
+      "featureTitle": "In the Settings view, display the current user’s full Internet Identity principal and provide a copy-to-clipboard button that copies the full principal string and shows clear success/failure feedback.",
       "files": [
-        "frontend/src/components/chat/ThreadList.tsx"
+        "frontend/src/components/settings/SettingsDialog.tsx",
+        "frontend/src/utils/clipboard.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -35,16 +37,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-30"
+        "REQ-39"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-defer-non-essential-user-profile-aggregation-until-it-is-actually-needed-by-replacing-broad-user-list-lookups-in-the-chat-thread-header-with-a-narrower-lookup-fetch-only-the-other-participant-s-profile-on-demand-so-opening-a-thread-does-not-require-preloading-all-user-profiles",
-      "featureTitle": "Defer non-essential user-profile aggregation until it is actually needed by replacing broad user list lookups in the chat thread header with a narrower lookup (fetch only the other participant’s profile on-demand), so opening a thread does not require preloading all user profiles.",
+      "featureId": "feature-in-the-settings-view-show-a-list-of-users-with-each-user-s-display-name-when-available-and-full-principal-and-provide-a-copy-button-per-user-that-copies-that-user-s-principal-to-the-clipboard",
+      "featureTitle": "In the Settings view, show a list of users with each user’s display name (when available) and full principal, and provide a copy button per user that copies that user’s principal to the clipboard.",
       "files": [
-        "frontend/src/components/chat/ChatThreadView.tsx",
-        "frontend/src/hooks/useUsers.ts"
+        "frontend/src/components/settings/SettingsDialog.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -55,27 +56,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-31"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-adjust-the-authenticated-pre-chat-list-loading-experience-so-it-does-not-wait-on-non-critical-queries-before-showing-the-main-app-shell-only-block-on-internet-identity-initialization-then-show-a-lightweight-in-app-loading-state-while-access-profile-admin-checks-resolve",
-      "featureTitle": "Adjust the authenticated “pre-chat-list” loading experience so it does not wait on non-critical queries before showing the main app shell; only block on Internet Identity initialization, then show a lightweight in-app loading state while access/profile/admin checks resolve.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/auth/AuthenticatedLoadingShell.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-32"
+        "REQ-40"
       ],
       "confidence": "high"
     }
